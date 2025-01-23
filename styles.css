@@ -74,7 +74,7 @@ button:hover {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
-    padding: 20px;
+    padding: 90px 20px 20px 20px;
 }
 
 .movie {
@@ -114,13 +114,6 @@ button:hover {
     padding: 5px 0px;
 }
 
-.movie img {
-    display: block;
-    width: 100%;
-    max-height: 250px;
-    object-fit: cover;
-}
-
 #movie-detail-container {
     width: 80%;
     margin: 100px auto 50px auto;
@@ -130,5 +123,33 @@ button:hover {
     overflow: hidden;
     display: flex;
     flex-direction: row;
-    padding: 20px;
+    padding: 20px 20px 20px 20px;
 }
+
+.movie-detail img {
+    max-width: 300px;
+}
+
+.icon img {
+    max-width: 60px;
+}
+
+.details-left {
+    float: left;
+    width: 50%;
+}
+
+.details-right {
+    float: right;
+    width: 50%;
+}
+
+.paragraph-left{
+    word-wrap: break-word;
+}
+
+.paragraph-right{
+    word-wrap: break-word;
+}
+
+

@@ -22,6 +22,27 @@ async function fetchMovies(query) {
     }
 }
 
+async function fetchPopularMovies() {
+    try {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/popular?page=1`, {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                'Authorization': `Bearer ${bearerToken}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        displayMovies(data.results);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 function displayMovies(movies) {
     const moviesContainer = document.getElementById('movies-container');
 
@@ -81,3 +102,5 @@ document.getElementById('query-input').addEventListener('keydown', (event) => {
         }
     }
 });
+
+fetchPopularMovies();
