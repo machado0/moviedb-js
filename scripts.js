@@ -1,9 +1,16 @@
 const apiUrl = 'https://api.themoviedb.org/3/search/movie';
 const bearerToken = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwMDE1ZjMyZmM5M2IzZTY5MTBlYmMwMjBhYWU1ZTExYSIsIm5iZiI6MTczNzEzMzIwMi4zNjUsInN1YiI6IjY3OGE4YzkyMDljMzFkYWVhNDk3NzM0YiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.eVyMaQILPnC6IG-jupQ-3YgbVIRN8HesFzkNPWfK1Zs';
 
-async function fetchMovies(query) {
+let currentPage = 1; 
+let isFetching = false; 
+const moviesContainer = document.getElementById('movies-container');
+
+async function fetchMovies(query, page = 1) {
+    if (isFetching) return;
+    isFetching = true;
+
     try {
-        const response = await fetch(`${apiUrl}?query=${encodeURIComponent(query)}`, {
+        const response = await fetch(`${apiUrl}?query=${encodeURIComponent(query)}&page=${page}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${bearerToken}`,
@@ -11,20 +18,23 @@ async function fetchMovies(query) {
             },
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
-        displayMovies(data.results);
+        displayMovies(data.results, page);
     } catch (error) {
         console.error('Error:', error);
+    } finally {
+        isFetching = false;
     }
 }
 
-async function fetchPopularMovies() {
+async function fetchPopularMovies(page = 1) {
+    if (isFetching) return;
+    isFetching = true;
+
     try {
-        const response = await fetch(`https://api.themoviedb.org/3/movie/popular?page=1`, {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/popular?page=${page}`, {
             method: 'GET',
             headers: {
                 accept: 'application/json',
@@ -32,26 +42,26 @@ async function fetchPopularMovies() {
             },
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
         const data = await response.json();
-        displayMovies(data.results);
+        displayMovies(data.results, page);
     } catch (error) {
         console.error('Error:', error);
+    } finally {
+        isFetching = false;
     }
 }
 
-function displayMovies(movies) {
-    const moviesContainer = document.getElementById('movies-container');
-
+function displayMovies(movies, page) {
     if (!moviesContainer) {
         console.error('Error: Could not find the element with ID "movies-container".');
         return;
     }
 
-    moviesContainer.innerHTML = '';
+    if (page === 1) moviesContainer.innerHTML = ''; 
+
+    movies.sort((a, b) => new Date(b.release_date) - new Date(a.release_date));
 
     movies.forEach(movie => {
         const movieElement = document.createElement('div');
@@ -60,7 +70,7 @@ function displayMovies(movies) {
         const posterPath = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'placeholder.jpg';
         const releaseDate = movie.release_date || 'Unknown';
         const overview = movie.overview || 'No description available.';
-        movieId = movie.id;        
+        const movieId = movie.id;
 
         if (!movieId) {
             console.error(`Movie ID is missing for the movie: ${movie.title}`);
@@ -83,10 +93,18 @@ function displayMovies(movies) {
     });
 }
 
+window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && !isFetching) {
+        currentPage++;
+        fetchPopularMovies(currentPage);
+    }
+});
+
 document.getElementById('search-button').addEventListener('click', () => {
     const query = document.getElementById('query-input').value.trim();
     if (query) {
-        fetchMovies(query);
+        currentPage = 1; 
+        fetchMovies(query, currentPage);
     } else {
         alert('Please enter a movie title.');
     }
@@ -96,11 +114,12 @@ document.getElementById('query-input').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         const query = event.target.value.trim();
         if (query) {
-            fetchMovies(query);
+            currentPage = 1; 
+            fetchMovies(query, currentPage);
         } else {
             alert('Please enter a movie title.');
         }
     }
 });
 
-fetchPopularMovies();
+fetchPopularMovies(); 
